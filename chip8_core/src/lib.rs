@@ -111,14 +111,19 @@ impl Emulator {
             (0, 0, 0, 0) => return, // "NOP"; Do nothing
             (0, 0, 0xE, 0) => {
                 self.screen = [false; SCREEN_WIDTH * SCREEN_HEIGHT];
-            } // "CLS"; Clear screen
+            } // Clear screen
             (0, 0, 0xE, 0xE) => {
                 self.program_counter = self.pop();
-            } // "RET"; return from subroutine
+            } // Return from subroutine
             (1, _, _, _) => {
                 let nnn = opcode & 0xFFF;
                 self.program_counter = nnn;
-            }
+            } // Jump to
+            (2, _, _, _) => {
+                let nnn = opcode & 0xFFF;
+                self.push(self.program_counter);
+                self.program_counter = nnn;
+            } // Call subroutine
             (_, _, _, _) => unimplemented!("Unimplemented operation code: {}", opcode),
         }
     }
@@ -127,11 +132,15 @@ impl Emulator {
         if self.delay_timer > 0 {
             self.delay_timer -= 1;
         }
-        if self.sound_timer > 0 {
-            if self.sound_timer == 1 {
-                println!("Bing");
+        match self.sound_timer {
+            0 => return,
+            1 => {
+                // TODO
+                println!("BING");
             }
-            self.sound_timer -= 1;
+            _ => {
+                self.sound_timer -= 1;
+            }
         }
     }
 }
