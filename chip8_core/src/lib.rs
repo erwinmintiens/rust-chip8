@@ -69,6 +69,17 @@ impl Emulator {
         self.v_reg[v_reg as usize] = value;
     }
 
+    /// Get a v register value
+    fn get_v_reg(&self, v_reg: usize) -> u8 {
+        if v_reg > 15 {
+            panic!(
+                "v register value {} not accessible. Must be a value from 0 to 15.",
+                v_reg
+            );
+        }
+        self.v_reg[v_reg]
+    }
+
     /// Clear the screen: set all list values to false
     fn clear_screen(&mut self) {
         self.screen = [false; SCREEN_WIDTH * SCREEN_HEIGHT];
@@ -174,15 +185,29 @@ impl Emulator {
                 }
             }
 
+            // Set VX to NN
             (6, _, _, _) => {
                 let x = digit2 as usize;
                 let nn = (opcode & 0xFF) as u8;
                 self.set_v_reg(x, nn);
             }
 
+            // VX += 0xNN
+            (7, _, _, _) => {
+                let x = digit2 as usize;
+                let nn = (opcode & 0xFF) as u8;
+                self.set_v_reg(x, self.get_v_reg(x).wrapping_add(nn));
+            }
+
+            // VX = VY
+            (8, _, _, 0) => {
+                let x = digit2 as usize;
+                let y = digit3 as usize;
+                self.set_v_reg(x, self.get_v_reg(y));
+            }
+
             /*
             TODO:
-            7XNN 	VX += 0xNN
             8XY0 	VX = VY
             8XY1 	VX |= VY
             8XY2 	VX &= VY
@@ -356,6 +381,27 @@ mod tests {
             let mut emul = Emulator::new();
             emul.execute_opcode(0x6722);
             assert_eq!(emul.v_reg[7], 0x0022);
+        }
+
+        /// Test add NN to VX
+        #[test]
+        fn opcode_7xnn() {
+            let mut emul = Emulator::new();
+            emul.set_v_reg(7, 0x0055);
+            emul.execute_opcode(0x7733);
+            assert_eq!(emul.get_v_reg(7), 0x0088);
+            emul.execute_opcode(0x7780);
+            assert_eq!(emul.get_v_reg(7), 0x0008); // Test wrapping around
+        }
+
+        /// Test VX = VY
+        #[test]
+        fn opcode_8xy0() {
+            let mut emul = Emulator::new();
+            emul.set_v_reg(2, 0x0055);
+            emul.set_v_reg(3, 0x0039);
+            emul.execute_opcode(0x8230);
+            assert_eq!(emul.get_v_reg(2), 0x0039);
         }
     }
 }
