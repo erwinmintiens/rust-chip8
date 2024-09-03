@@ -280,6 +280,22 @@ mod tests {
         emul.set_v_reg(16, 0x0089);
     }
 
+    /// Test getting a v register
+    #[test]
+    fn get_v_reg() {
+        let mut emul = Emulator::new();
+        emul.v_reg[1] = 0x0001;
+        assert_eq!(emul.get_v_reg(1), 0x0001);
+    }
+
+    /// Test getting a non existing v register, which should panic
+    #[test]
+    #[should_panic]
+    fn get_v_reg_invalid() {
+        let emul = Emulator::new();
+        assert_eq!(emul.get_v_reg(19), 0x0001);
+    }
+
     mod test_opcode_execution {
         use super::*;
 
