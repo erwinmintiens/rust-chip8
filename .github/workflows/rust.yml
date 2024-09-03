@@ -16,7 +16,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Build
+    - name: Build core
       run: cd chip8_core && cargo build --verbose
-    - name: Run tests
+    - name: Run core tests
       run: cd chip8_core && cargo test --verbose
