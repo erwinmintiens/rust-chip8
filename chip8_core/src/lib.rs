@@ -164,7 +164,7 @@ impl Emulator {
             (3, _, _, _) => {
                 let x = digit2 as usize;
                 let nn = (opcode & 0xFF) as u8;
-                if self.v_reg[x] == nn {
+                if self.get_v_reg(x) == nn {
                     self.program_counter += 2;
                 }
             }
@@ -172,7 +172,7 @@ impl Emulator {
             (4, _, _, _) => {
                 let x = digit2 as usize;
                 let nn = (opcode & 0xFF) as u8;
-                if self.v_reg[x] != nn {
+                if self.get_v_reg(x) != nn {
                     self.program_counter += 2;
                 }
             }
@@ -180,7 +180,7 @@ impl Emulator {
             (5, _, _, 0) => {
                 let x = digit2 as usize;
                 let y = digit3 as usize;
-                if self.v_reg[x] == self.v_reg[y] {
+                if self.get_v_reg(x) == self.get_v_reg(y) {
                     self.program_counter += 2;
                 }
             }
@@ -358,7 +358,7 @@ mod tests {
         fn opcode_3nnn() {
             let mut emul = Emulator::new();
             emul.program_counter = 0;
-            emul.v_reg[6] = 0x0078;
+            emul.set_v_reg(6, 0x0078);
             emul.execute_opcode(0x3678);
             assert_eq!(emul.program_counter, 2); //v6 matches 0x0078, so program counter should increase by 2
             emul.execute_opcode(0x3689);
@@ -396,7 +396,7 @@ mod tests {
         fn opcode_6xnn() {
             let mut emul = Emulator::new();
             emul.execute_opcode(0x6722);
-            assert_eq!(emul.v_reg[7], 0x0022);
+            assert_eq!(emul.get_v_reg(7), 0x0022);
         }
 
         /// Test add NN to VX
